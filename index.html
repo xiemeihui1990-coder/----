@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企业地产挂图作战 · 到期客户续签完成情况</title>
+<style>
+  :root {
+    --bg: #0f1923;
+    --bg2: #152030;
+    --bg3: #1a2a3a;
+    --border: #1e3a50;
+    --green: #00c896;
+    --green-dim: #00a07a;
+    --green-glow: rgba(0,200,150,0.15);
+    --red: #ff4d4d;
+    --orange: #f5a623;
+    --blue: #4fc3f7;
+    --text: #e0f0ff;
+    --text-dim: #7aaabb;
+    --gold: #ffd700;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* ── 顶部标题区 ── */
+  .header {
+    text-align: center;
+    padding: 24px 0 18px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    margin: 14px auto 0;
+  }
+  .header-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #0d3322, #0a4a30);
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 3px 14px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #7fffd4, #00c896, #4fc3f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 4px;
+  }
+  .header-sub {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .update-time {
+    font-size: 11px;
+    color: #4a7a8a;
+    margin-top: 4px;
+  }
+
+  /* ── KPI 卡片行 ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 22px 0 18px;
+  }
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .kpi-card.green::before  { background: var(--green); }
+  .kpi-card.red::before    { background: var(--red); }
+  .kpi-card.orange::before { background: var(--orange); }
+  .kpi-card.blue::before   { background: var(--blue); }
+
+  .kpi-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .kpi-card.green  .kpi-value { color: var(--green); }
+  .kpi-card.red    .kpi-value { color: var(--red); }
+  .kpi-card.orange .kpi-value { color: var(--orange); }
+  .kpi-card.blue   .kpi-value { color: var(--blue); }
+
+  .kpi-unit { font-size: 14px; font-weight: 400; margin-left: 2px; }
+  .kpi-sub  { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+  .kpi-sub span { color: var(--text); font-weight: 600; }
+
+  /* ── 主要内容区（左右布局）── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* ── 面板通用 ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--green);
+  }
+  .panel-header .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .panel-body { padding: 14px 16px; }
+
+  /* ── 月度进度条甘特 ── */
+  .month-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+  .month-label {
+    width: 52px;
+    font-size: 12px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .bar-track {
+    flex: 1;
+    height: 22px;
+    background: #0e2030;
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+    position: relative;
+  }
+  .bar-seg {
+    height: 100%;
+    transition: width 0.6s ease;
+  }
+  .bar-seg.signed  { background: var(--green); }
+  .bar-seg.pending { background: var(--orange); opacity: 0.8; }
+  .bar-seg.unsign  { background: var(--red); }
+  .bar-text {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: rgba(255,255,255,0.75);
+    pointer-events: none;
+  }
+  .month-count {
+    width: 42px;
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  /* ── 园区卡片 ── */
+  .park-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .park-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    position: relative;
+  }
+  .park-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .park-stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+  }
+  .park-stat-row span { color: var(--text); font-weight: 600; }
+  .park-ring-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .ring-svg { flex-shrink: 0; }
+  .ring-labels { flex: 1; }
+  .ring-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 3px;
+  }
+  .ring-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── 客户明细表 ── */
+  .full-panel { margin-bottom: 14px; }
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .detail-table th {
+    background: var(--bg3);
+    color: var(--text-dim);
+    font-weight: 500;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+  }
+  .detail-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(30,58,80,0.6);
+    vertical-align: middle;
+  }
+  .detail-table tr:hover td {
+    background: rgba(0,200,150,0.04);
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-signed  { background: rgba(0,200,150,0.15); color: var(--green); border: 1px solid rgba(0,200,150,0.3); }
+  .badge-unsign  { background: rgba(255,77,77,0.12);  color: var(--red);   border: 1px solid rgba(255,77,77,0.3); }
+  .badge-pending { background: rgba(245,166,35,0.12); color: var(--orange);border: 1px solid rgba(245,166,35,0.3); }
+
+  /* ── 图例 ── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── 底部 ── */
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #3a5a6a;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+  }
+
+  /* 进度数字 */
+  .pct-txt {
+    font-size: 11px;
+    width: 38px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .pct-green  { color: var(--green); }
+  .pct-orange { color: var(--orange); }
+
+  /* 滚动容器 */
+  .scroll-wrap {
+    max-height: 380px;
+    overflow-y: auto;
+  }
+  .scroll-wrap::-webkit-scrollbar { width: 4px; }
+  .scroll-wrap::-webkit-scrollbar-track { background: var(--bg); }
+  .scroll-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* 横跨全宽 */
+  .col-span-2 { grid-column: span 2; }
+
+  /* 月度头部 */
+  .section-title {
+    font-size: 11px;
+    color: #3a6a7a;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--green-dim);
+    padding-left: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ 标题 ══════════════════ -->
+<div class="header">
+  <div class="header-badge">BATTLE MAP · 挂图作战</div>
+  <h1>企业地产 · 到期客户续签完成情况</h1>
+  <div class="header-sub">ENTERPRISE REAL ESTATE — CONTRACT RENEWAL TRACKING 2025–2026</div>
+  <div class="update-time">数据截止：2026年6月9日 &nbsp;|&nbsp; 统计口径：合同到期年度内全量客户</div>
+</div>
+
+<!-- ══════════════════ KPI ══════════════════ -->
+<div class="kpi-row">
+  <div class="kpi-card green">
+    <div class="kpi-label">✅ 已续签客户</div>
+    <div class="kpi-value">84<span class="kpi-unit">户</span></div>
+    <div class="kpi-sub">续签面积 <span>59,676 ㎡</span></div>
+    <div class="kpi-sub">续签率（已决） <span>85%</span></div>
+  </div>
+  <div class="kpi-card red">
+    <div class="kpi-label">❌ 未续签客户</div>
+    <div class="kpi-value">15<span class="kpi-unit">户</span></div>
+    <div class="kpi-sub">流失面积 <span>7,155 ㎡</span></div>
+    <div class="kpi-sub">流失率（已决） <span>15%</span></div>
+  </div>
+  <div class="kpi-card orange">
+    <div class="kpi-label">⏳ 待确认客户</div>
+    <div class="kpi-value">66<span class="kpi-unit">户</span></div>
+    <div class="kpi-sub">涉及面积 <span>31,885 ㎡</span></div>
+    <div class="kpi-sub">主要为 2026年下半年到期</div>
+  </div>
+  <div class="kpi-card blue">
+    <div class="kpi-label">📐 合同总面积</div>
+    <div class="kpi-value">98,717<span class="kpi-unit">㎡</span></div>
+    <div class="kpi-sub">合同总数 <span>165 份</span></div>
+    <div class="kpi-sub">覆盖园区 <span>5 个</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ 主体双栏 ══════════════════ -->
+<div class="main-grid">
+
+  <!-- 左：月度进度甘特 -->
+  <div class="panel">
+    <div class="panel-header"><span class="dot"></span>月度到期续签进度</div>
+    <div class="panel-body">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>已续签</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>待确认</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>未续签</div>
+      </div>
+
+      <div class="section-title">2025 年</div>
+
+      <!-- 2025-12 -->
+      <div class="month-row">
+        <div class="month-label">12月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed"  style="width:100%"></div>
+          <div class="bar-text">22户 · 23,091㎡</div>
+        </div>
+        <div class="pct-txt pct-green">100%</div>
+      </div>
+
+      <div class="section-title" style="margin-top:12px">2026 年</div>
+
+      <!-- 2026-01 -->
+      <div class="month-row">
+        <div class="month-label">1月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed" style="width:85.7%"></div>
+          <div class="bar-seg unsign" style="width:14.3%"></div>
+          <div class="bar-text">7户 · 5,056㎡</div>
+        </div>
+        <div class="pct-txt pct-green">86%</div>
+      </div>
+      <!-- 2026-02 -->
+      <div class="month-row">
+        <div class="month-label">2月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed" style="width:62.5%"></div>
+          <div class="bar-seg unsign" style="width:37.5%"></div>
+          <div class="bar-text">8户 · 2,378㎡</div>
+        </div>
+        <div class="pct-txt pct-green">63%</div>
+      </div>
+      <!-- 2026-03 -->
+      <div class="month-row">
+        <div class="month-label">3月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed" style="width:70.4%"></div>
+          <div class="bar-seg unsign" style="width:29.6%"></div>
+          <div class="bar-text">27户 · 15,043㎡</div>
+        </div>
+        <div class="pct-txt pct-green">70%</div>
+      </div>
+      <!-- 2026-04 -->
+      <div class="month-row">
+        <div class="month-label">4月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed" style="width:94.7%"></div>
+          <div class="bar-seg unsign" style="width:5.3%"></div>
+          <div class="bar-text">19户 · 11,167㎡</div>
+        </div>
+        <div class="pct-txt pct-green">95%</div>
+      </div>
+      <!-- 2026-05 -->
+      <div class="month-row">
+        <div class="month-label">5月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed" style="width:83.3%"></div>
+          <div class="bar-seg unsign" style="width:16.7%"></div>
+          <div class="bar-text">6户 · 3,444㎡</div>
+        </div>
+        <div class="pct-txt pct-green">83%</div>
+      </div>
+      <!-- 2026-06 -->
+      <div class="month-row">
+        <div class="month-label">6月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed"  style="width:44.4%"></div>
+          <div class="bar-seg pending" style="width:55.6%"></div>
+          <div class="bar-text">9户 · 4,836㎡</div>
+        </div>
+        <div class="pct-txt pct-orange">44%</div>
+      </div>
+      <!-- 2026-07 -->
+      <div class="month-row">
+        <div class="month-label">7月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed"  style="width:18.2%"></div>
+          <div class="bar-seg pending" style="width:77.3%"></div>
+          <div class="bar-seg unsign"  style="width:4.5%"></div>
+          <div class="bar-text">22户 · 11,370㎡</div>
+        </div>
+        <div class="pct-txt pct-orange">18%</div>
+      </div>
+      <!-- 2026-08 -->
+      <div class="month-row">
+        <div class="month-label">8月</div>
+        <div class="bar-track">
+          <div class="bar-seg pending" style="width:100%"></div>
+          <div class="bar-text">2户 · 2,346㎡</div>
+        </div>
+        <div class="pct-txt pct-orange">0%</div>
+      </div>
+      <!-- 2026-09 -->
+      <div class="month-row">
+        <div class="month-label">9月</div>
+        <div class="bar-track">
+          <div class="bar-seg pending" style="width:100%"></div>
+          <div class="bar-text">5户 · 1,830㎡</div>
+        </div>
+        <div class="pct-txt pct-orange">0%</div>
+      </div>
+      <!-- 2026-10 -->
+      <div class="month-row">
+        <div class="month-label">10月</div>
+        <div class="bar-track">
+          <div class="bar-seg pending" style="width:100%"></div>
+          <div class="bar-text">8户 · 4,618㎡</div>
+        </div>
+        <div class="pct-txt pct-orange">0%</div>
+      </div>
+      <!-- 2026-11 -->
+      <div class="month-row">
+        <div class="month-label">11月</div>
+        <div class="bar-track">
+          <div class="bar-seg pending" style="width:100%"></div>
+          <div class="bar-text">10户 · 4,368㎡</div>
+        </div>
+        <div class="pct-txt pct-orange">0%</div>
+      </div>
+      <!-- 2026-12 -->
+      <div class="month-row">
+        <div class="month-label">12月</div>
+        <div class="bar-track">
+          <div class="bar-seg signed"  style="width:5%"></div>
+          <div class="bar-seg pending" style="width:95%"></div>
+          <div class="bar-text">20户 · 9,168㎡</div>
+        </div>
+        <div class="pct-txt pct-orange">5%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：园区分布 -->
+  <div class="panel">
+    <div class="panel-header"><span class="dot"></span>园区续签完成情况</div>
+    <div class="panel-body">
+      <div class="park-grid">
+
+        <!-- 上地 -->
+        <div class="park-card">
+          <div class="park-name">🏢 上地</div>
+          <div class="park-stat-row">合同户数 <span>33户</span></div>
+          <div class="park-stat-row">合同面积 <span>28,966㎡</span></div>
+          <div class="park-ring-wrap">
+            <svg class="ring-svg" width="56" height="56" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#0e2030" stroke-width="7"/>
+              <!-- 已续签 24/33=72.7% → 160.5deg -->
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#00c896" stroke-width="7"
+                stroke-dasharray="138.23 138.23" stroke-dashoffset="0"
+                transform="rotate(-90 28 28)"
+                stroke-dasharray="100.45 37.78"/>
+              <!-- 未续签 3/33=9.1% → 20.0deg -->
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#ff4d4d" stroke-width="7"
+                stroke-dasharray="12.57 125.66" stroke-dashoffset="-100.45"
+                transform="rotate(-90 28 28)"/>
+              <!-- 待确认 6/33=18.2% →40.0deg -->
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#f5a623" stroke-width="7"
+                stroke-dasharray="25.13 113.1" stroke-dashoffset="-113.02"
+                transform="rotate(-90 28 28)"/>
+              <text x="28" y="32" text-anchor="middle" font-size="11" fill="#00c896" font-family="Arial">73%</text>
+            </svg>
+            <div class="ring-labels">
+              <div class="ring-item"><div class="ring-dot" style="background:var(--green)"></div>已续签 24户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--red)"></div>未续签 3户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--orange)"></div>待确认 6户</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 武汉 -->
+        <div class="park-card">
+          <div class="park-name">🏢 武汉</div>
+          <div class="park-stat-row">合同户数 <span>56户</span></div>
+          <div class="park-stat-row">合同面积 <span>21,011㎡</span></div>
+          <div class="park-ring-wrap">
+            <svg class="ring-svg" width="56" height="56" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#0e2030" stroke-width="7"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#00c896" stroke-width="7"
+                stroke-dasharray="138.23 138.23" stroke-dashoffset="0"
+                transform="rotate(-90 28 28)"
+                stroke-dasharray="49.37 88.86"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#ff4d4d" stroke-width="7"
+                stroke-dasharray="17.28 120.95" stroke-dashoffset="-49.37"
+                transform="rotate(-90 28 28)"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#f5a623" stroke-width="7"
+                stroke-dasharray="71.58 66.65" stroke-dashoffset="-66.65"
+                transform="rotate(-90 28 28)"/>
+              <text x="28" y="32" text-anchor="middle" font-size="11" fill="#00c896" font-family="Arial">36%</text>
+            </svg>
+            <div class="ring-labels">
+              <div class="ring-item"><div class="ring-dot" style="background:var(--green)"></div>已续签 20户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--red)"></div>未续签 7户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--orange)"></div>待确认 29户</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 西安 -->
+        <div class="park-card">
+          <div class="park-name">🏢 西安</div>
+          <div class="park-stat-row">合同户数 <span>50户</span></div>
+          <div class="park-stat-row">合同面积 <span>33,228㎡</span></div>
+          <div class="park-ring-wrap">
+            <svg class="ring-svg" width="56" height="56" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#0e2030" stroke-width="7"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#00c896" stroke-width="7"
+                transform="rotate(-90 28 28)"
+                stroke-dasharray="63.83 74.4"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#ff4d4d" stroke-width="7"
+                stroke-dasharray="8.31 129.92" stroke-dashoffset="-63.83"
+                transform="rotate(-90 28 28)"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#f5a623" stroke-width="7"
+                stroke-dasharray="66.09 72.14" stroke-dashoffset="-72.14"
+                transform="rotate(-90 28 28)"/>
+              <text x="28" y="32" text-anchor="middle" font-size="11" fill="#00c896" font-family="Arial">46%</text>
+            </svg>
+            <div class="ring-labels">
+              <div class="ring-item"><div class="ring-dot" style="background:var(--green)"></div>已续签 23户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--red)"></div>未续签 3户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--orange)"></div>待确认 24户</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 重庆 -->
+        <div class="park-card">
+          <div class="park-name">🏢 重庆</div>
+          <div class="park-stat-row">合同户数 <span>18户</span></div>
+          <div class="park-stat-row">合同面积 <span>10,813㎡</span></div>
+          <div class="park-ring-wrap">
+            <svg class="ring-svg" width="56" height="56" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#0e2030" stroke-width="7"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#00c896" stroke-width="7"
+                transform="rotate(-90 28 28)"
+                stroke-dasharray="107.52 30.71"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#ff4d4d" stroke-width="7"
+                stroke-dasharray="15.39 122.84" stroke-dashoffset="-107.52"
+                transform="rotate(-90 28 28)"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#f5a623" stroke-width="7"
+                stroke-dasharray="15.32 122.91" stroke-dashoffset="-122.91"
+                transform="rotate(-90 28 28)"/>
+              <text x="28" y="32" text-anchor="middle" font-size="11" fill="#00c896" font-family="Arial">78%</text>
+            </svg>
+            <div class="ring-labels">
+              <div class="ring-item"><div class="ring-dot" style="background:var(--green)"></div>已续签 14户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--red)"></div>未续签 2户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--orange)"></div>待确认 2户</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 苏州街 -->
+        <div class="park-card">
+          <div class="park-name">🏢 苏州街</div>
+          <div class="park-stat-row">合同户数 <span>8户</span></div>
+          <div class="park-stat-row">合同面积 <span>5,599㎡</span></div>
+          <div class="park-ring-wrap">
+            <svg class="ring-svg" width="56" height="56" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#0e2030" stroke-width="7"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#00c896" stroke-width="7"
+                transform="rotate(-90 28 28)"
+                stroke-dasharray="51.84 86.39"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#f5a623" stroke-width="7"
+                stroke-dasharray="86.39 51.84" stroke-dashoffset="-51.84"
+                transform="rotate(-90 28 28)"/>
+              <text x="28" y="32" text-anchor="middle" font-size="11" fill="#00c896" font-family="Arial">38%</text>
+            </svg>
+            <div class="ring-labels">
+              <div class="ring-item"><div class="ring-dot" style="background:var(--green)"></div>已续签 3户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--red)"></div>未续签 0户</div>
+              <div class="ring-item"><div class="ring-dot" style="background:var(--orange)"></div>待确认 5户</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 汇总 -->
+        <div class="park-card" style="border-color:var(--green-dim); background:rgba(0,200,150,0.04)">
+          <div class="park-name" style="color:var(--green)">📊 全部汇总</div>
+          <div class="park-stat-row">总合同户数 <span style="color:var(--blue)">165户</span></div>
+          <div class="park-stat-row">总合同面积 <span style="color:var(--blue)">98,717㎡</span></div>
+          <div style="margin-top:10px">
+            <div class="ring-item" style="margin-bottom:5px; font-size:12px">
+              <div class="ring-dot" style="background:var(--green); width:9px; height:9px"></div>
+              已续签：<span style="color:var(--green); font-weight:700; margin-left:4px">84户 · 85%（已决）</span>
+            </div>
+            <div class="ring-item" style="margin-bottom:5px; font-size:12px">
+              <div class="ring-dot" style="background:var(--red); width:9px; height:9px"></div>
+              未续签：<span style="color:var(--red); font-weight:700; margin-left:4px">15户 · 15%（已决）</span>
+            </div>
+            <div class="ring-item" style="font-size:12px">
+              <div class="ring-dot" style="background:var(--orange); width:9px; height:9px"></div>
+              待确认：<span style="color:var(--orange); font-weight:700; margin-left:4px">66户 · 待跟进</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end park-grid -->
+    </div>
+  </div>
+
+</div><!-- end main-grid -->
+
+<!-- ══════════════════ 详细客户明细 ══════════════════ -->
+<div class="panel full-panel">
+  <div class="panel-header"><span class="dot"></span>客户续签明细 — 重点关注（未续签 + 待确认上半年到期）</div>
+  <div class="scroll-wrap">
+    <table class="detail-table">
+      <thead>
+        <tr>
+          <th>序号</th>
+          <th>园区</th>
+          <th>位置</th>
+          <th>公司全称</th>
+          <th style="text-align:right">签约面积(㎡)</th>
+          <th>合同到期</th>
+          <th>续签状态</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- 未续签客户（红色标记） -->
+        <tr><td colspan="7" style="background:#1a0a0a; color:#ff6060; font-size:11px; padding:6px 10px; letter-spacing:1px">— 未续签客户（共15户，需重点跟进） —</td></tr>
+        <tr><td>25</td><td>重庆</td><td>19-B</td><td>云联智控（重庆）信息技术有限公司</td><td style="text-align:right">265.35</td><td>2026-01-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>30</td><td>武汉</td><td>1号楼12楼</td><td>灵时云（苏州）信息科技有限公司</td><td style="text-align:right">157.00</td><td>2026-02-02</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>34</td><td>武汉</td><td>1号楼13楼</td><td>武汉携商科技有限公司</td><td style="text-align:right">278.00</td><td>2026-02-04</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>36</td><td>上地</td><td>北楼3层</td><td>北京骁鲨科技有限公司</td><td style="text-align:right">610.00</td><td>2026-02-28</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>42</td><td>武汉</td><td>1号楼15楼</td><td>武汉智仁信息技术有限公司</td><td style="text-align:right">207.00</td><td>2026-03-25</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>43</td><td>上地</td><td>北楼1层</td><td>北京高科数聚技术有限公司</td><td style="text-align:right">150.00</td><td>2026-03-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>46</td><td>武汉</td><td>1号楼5楼</td><td>武汉小果科技有限公司</td><td style="text-align:right">615.00</td><td>2026-03-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>50</td><td>武汉</td><td>26号楼10楼</td><td>武汉腾泉汇达科技信息有限公司</td><td style="text-align:right">624.07</td><td>2026-03-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>57</td><td>重庆</td><td>18-A</td><td>重庆市东方立达投资有限公司</td><td style="text-align:right">292.50</td><td>2026-03-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>59</td><td>西安</td><td>4#21F</td><td>北京清华同衡规划设计研究院有限公司西北分公司</td><td style="text-align:right">1,420.00</td><td>2026-03-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>60</td><td>西安</td><td>4#22F-AB</td><td>内蒙古第一机械集团股份有限公司</td><td style="text-align:right">762.48</td><td>2026-03-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>63</td><td>西安</td><td>5#7F-B</td><td>上海道新电子科技有限公司</td><td style="text-align:right">82.00</td><td>2026-03-31</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>73</td><td>武汉</td><td>28号楼10楼</td><td>湖北钰泽机械有限公司</td><td style="text-align:right">624.06</td><td>2026-04-30</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>84</td><td>武汉</td><td>1号楼10楼</td><td>武汉空格影视文化有限公司</td><td style="text-align:right">82.97</td><td>2026-05-04</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+        <tr><td>99</td><td>上地</td><td>南楼4层</td><td>智慧芽信息科技（北京）有限公司</td><td style="text-align:right">985.00</td><td>2026-07-07</td><td><span class="badge badge-unsign">未续签</span></td></tr>
+
+        <!-- 待确认（上半年到期） -->
+        <tr><td colspan="7" style="background:#1a1000; color:#f5c842; font-size:11px; padding:6px 10px; letter-spacing:1px">— 待确认客户 · 2026年上半年（≤6月30日）到期，需紧急跟进 —</td></tr>
+        <tr><td>91</td><td>武汉</td><td>1号楼13楼</td><td>武汉格物思信息科技有限公司</td><td style="text-align:right">83.28</td><td>2026-06-20</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>92</td><td>武汉</td><td>1号楼3楼</td><td>泰极讯科技（上海）有限公司</td><td style="text-align:right">230.00</td><td>2026-06-30</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>93</td><td>武汉</td><td>1号楼15楼</td><td>天启黑马信息科技（武汉）有限公司</td><td style="text-align:right">108.00</td><td>2026-06-30</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>94</td><td>武汉</td><td>28号楼12楼</td><td>武汉珍品食份爱食品有限公司</td><td style="text-align:right">624.06</td><td>2026-06-30</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>98</td><td>西安</td><td>5#7F-A</td><td>西安大富宇航科技有限公司</td><td style="text-align:right">386.82</td><td>2026-06-30</td><td><span class="badge badge-pending">待确认</span></td></tr>
+
+        <!-- 待确认（下半年到期）-->
+        <tr><td colspan="7" style="background:#0a101a; color:#4a8aaa; font-size:11px; padding:6px 10px; letter-spacing:1px">— 待确认客户 · 2026年下半年（≥7月1日）到期，建议提前介入 —</td></tr>
+        <tr><td>100</td><td>上地</td><td>北楼1层</td><td>北京中网易企秀科技有限公司</td><td style="text-align:right">640.00</td><td>2026-07-21</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>101</td><td>武汉</td><td>1号楼5楼</td><td>中嘉博锐电子商务（武汉）有限公司</td><td style="text-align:right">297.50</td><td>2026-07-23</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>102</td><td>上地</td><td>南楼1层</td><td>北京神州数码有限公司</td><td style="text-align:right">145.00</td><td>2026-07-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>107</td><td>苏州街</td><td>7层</td><td>北京蓝色创想网络科技有限责任公司</td><td style="text-align:right">1,011.20</td><td>2026-07-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>108</td><td>苏州街</td><td>7层</td><td>北京朋趣科技有限公司</td><td style="text-align:right">855.00</td><td>2026-07-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>117</td><td>西安</td><td>4#22F-D</td><td>西安三礼旅游文化产品发展有限公司</td><td style="text-align:right">376.03</td><td>2026-07-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>118</td><td>西安</td><td>4#26F-CD</td><td>陕西融盛知识产权平台有限公司</td><td style="text-align:right">490.83</td><td>2026-07-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>119</td><td>西安</td><td>5#15F-C-D</td><td>北京华进京联知识产权代理有限公司</td><td style="text-align:right">551.29</td><td>2026-07-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>120</td><td>西安</td><td>5#15F-C-D</td><td>西安华进知识产权服务有限公司</td><td style="text-align:right">135.00</td><td>2026-07-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>122</td><td>重庆</td><td>7-8F</td><td>中国市政工程华北设计研究总院有限公司重庆分公司</td><td style="text-align:right">2,191.76</td><td>2026-08-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>127</td><td>西安</td><td>5#20F-B</td><td>陕西润澜建设工程有限公司</td><td style="text-align:right">346.89</td><td>2026-09-30</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>128</td><td>重庆</td><td>13-B</td><td>中创欧瑞供应链公司</td><td style="text-align:right">548.00</td><td>2026-10-15</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>133</td><td>武汉</td><td>1号楼16楼</td><td>得瑞领新（武汉）科技有限公司</td><td style="text-align:right">1,096.27</td><td>2026-10-31</td><td><span class="badge badge-pending">待确认</span></td></tr>
+        <tr><td>136</td><td>西安</td><td>4#9F</td><td>芯动微电子科技（北京）有限公司</td><td style="text-align:right">1,420.00</td><td>2026-11-30</td><td><span class="badge badge-pending">待确认</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════ 底部 ══════════════════ -->
+<div class="footer">
+  数据来源：到期客户续签情况.xlsx &nbsp;|&nbsp; 制作时间：2026年6月9日 &nbsp;|&nbsp; 企业地产资产运营本部
+</div>
+
+</body>
+</html>
